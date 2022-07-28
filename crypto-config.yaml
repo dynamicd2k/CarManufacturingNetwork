@@ -1,0 +1,34 @@
+OrdererOrgs:
+  - Name: Orderer
+    Domain: carmanufacturing-network.com
+    Specs:
+      - Hostname: orderer
+PeerOrgs:
+ - Name: manufacturer
+   Domain: manufacturer.carmanufacturing-network.com
+   EnableNodeOUs: true
+   Template:
+      Count: 2
+   Users:
+      Count: 1
+ - Name: dealer
+   Domain: dealer.carmanufacturing-network.com
+   EnableNodeOUs: true
+   Template:
+      Count: 2
+   Users:
+      Count: 1
+ - Name: transporter
+   Domain: transporter.carmanufacturing-network.com
+   EnableNodeOUs: true
+   Template:
+      Count: 2
+   Users:
+      Count: 1
+ - Name: consumer
+   Domain: consumer.carmanufacturing-network.com
+   EnableNodeOUs: true
+   Template:
+      Count: 2
+   Users:
+      Count: 1

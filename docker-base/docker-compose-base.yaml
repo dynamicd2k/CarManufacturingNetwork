@@ -1,0 +1,284 @@
+version: '2'
+
+services:
+
+  orderer.carmanufacturing-network.com:
+    container_name: orderer.carmanufacturing-network.com
+    image: hyperledger/fabric-orderer:latest
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enable TLS
+      - ORDERER_GENERAL_TLS_ENABLED=false
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      #- GODEBUG=netdns=go
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/carmanufacturing-network.com/orderers/orderer.carmanufacturing-network.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/carmanufacturing-network.com/orderers/orderer.carmanufacturing-network.com/tls:/var/hyperledger/orderer/tls
+    - orderer.carmanufacturing-network.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.manufacturer.carmanufacturing-network.com:
+    container_name: peer0.manufacturer.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.manufacturer.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer0.manufacturer.carmanufacturing-network.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.manufacturer.carmanufacturing-network.com:7053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7053
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.manufacturer.carmanufacturing-network.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.manufacturer.carmanufacturing-network.com:7051
+      - CORE_PEER_LOCALMSPID=manufacturerMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/manufacturer.carmanufacturing-network.com/peers/peer0.manufacturer.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/manufacturer.carmanufacturing-network.com/peers/peer0.manufacturer.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.manufacturer.carmanufacturing-network.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+      - 7053:7053
+
+  peer1.manufacturer.carmanufacturing-network.com:
+    container_name: peer1.rmanufacturer.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.manufacturer.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer1.manufacturer.carmanufacturing-network.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.manufacturer.carmanufacturing-network.com:8053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8053
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.manufacturer.carmanufacturing-network.com:8051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.manufacturer.carmanufacturing-network.com:7051
+      - CORE_PEER_LOCALMSPID=manufacturerMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/manufacturer.carmanufacturing-network.com/peers/peer1.manufacturer.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/manufacturer.carmanufacturing-network.com/peers/peer1.manufacturer.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.manufacturer.carmanufacturing-network.com:/var/hyperledger/production
+
+    ports:
+      - 8051:8051
+      - 8053:8053
+
+  peer0.dealer.carmanufacturing-network.com:
+    container_name: peer0.dealer.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.dealer.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer0.dealer.carmanufacturing-network.com:11051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:1105
+      - CORE_PEER_CHAINCODEADDRESS=peer0.dealer.carmanufacturing-network.com:11053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11053
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dealer.carmanufacturing-network.com:11051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.dealer.carmanufacturing-network.com:12051
+      - CORE_PEER_LOCALMSPID=dealerMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/dealer.carmanufacturing-network.com/peers/peer0.dealer.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/dealer.carmanufacturing-network.com/peers/peer0.dealer.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.dealer.carmanufacturing-network.com:/var/hyperledger/production
+    ports:
+      - 9051:9051
+      - 9053:9053
+
+  peer1.dealer.carmanufacturing-network.com:
+    container_name: peer1.dealer.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.dealer.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer1.dealer.carmanufacturing-network.com:12051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:12051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.dealer.carmanufacturing-network.com:12053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:12053
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.dealer.carmanufacturing-network.com:12051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.dealer.carmanufacturing-network.com:11051
+      - CORE_PEER_LOCALMSPID=dealerMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/dealer.carmanufacturing-network.com/peers/peer1.dealer.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/dealer.carmanufacturing-network.com/peers/peer1.dealer.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.dealer.carmanufacturing-network.com:/var/hyperledger/production
+    ports:
+      - 10051:10051
+      - 10053:10053
+
+
+  peer0.consumer.carmanufacturing-network.com:
+    container_name: peer0.consumer.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.consumer.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer0.consumer.carmanufacturing-network.com:13051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:13051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.consumer.carmanufacturing-network.com:13053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:13053
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.consumer.carmanufacturing-network.com:13051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.consumer.carmanufacturing-network.com:14051
+      - CORE_PEER_LOCALMSPID=consumerMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/consumer.carmanufacturing-network.com/peers/peer0.consumer.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/consumer.carmanufacturing-network.com/peers/peer0.consumer.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.consumer.carmanufacturing-network.com:/var/hyperledger/production
+    ports:
+      - 11051:11051
+      - 11053:11053
+
+  peer1.consumer.carmanufacturing-network.com:
+    container_name: peer1.consumer.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.consumer.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer1.consumer.carmanufacturing-network.com:14051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:14051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.consumer.carmanufacturing-network.com:14053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:14053
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.consumer.carmanufacturing-network.com:14051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.consumer.carmanufacturing-network.com:13051
+      - CORE_PEER_LOCALMSPID=consumerMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/consumer.carmanufacturing-network.com/peers/peer1.consumer.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/consumer.carmanufacturing-network.com/peers/peer1.consumer.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.consumer.carmanufacturing-network.com:/var/hyperledger/production
+    ports:
+      - 12051:12051
+      - 12053:12053
+
+  peer0.transporter.carmanufacturing-network.com:
+    container_name: peer0.transporter.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.transporter.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer0.transporter.carmanufacturing-network.com:15051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:15051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.transporter.carmanufacturing-network.com:15053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:15053
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.transporter.carmanufacturing-network.com:15051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.transporter.carmanufacturing-network.com:16051
+      - CORE_PEER_LOCALMSPID=transporterMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/transporter.carmanufacturing-network.com/peers/peer0.transporter.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/transporter.carmanufacturing-network.com/peers/peer0.transporter.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.transporter.carmanufacturing-network.com:/var/hyperledger/production
+    ports:
+      - 13051:13051
+      - 13053:13053
+
+  peer1.transporter.carmanufacturing-network.com:
+    container_name: peer1.transporter.carmanufacturing-network.com
+    extends:
+      file: docker-compose-peer.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.transporter.carmanufacturing-network.com
+      - CORE_PEER_ADDRESS=peer1.transporter.carmanufacturing-network.com:16051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:16051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.transporter.carmanufacturing-network.com:16053
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:16053
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.transporter.carmanufacturing-network.com:16051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.transporter.carmanufacturing-network.com:15051
+      - CORE_PEER_LOCALMSPID=transporterMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/transporter.carmanufacturing-network.com/peers/peer1.transporter.carmanufacturing-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/transporter.carmanufacturing-network.com/peers/peer1.transporter.carmanufacturing-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.transporter.carmanufacturing-network.com:/var/hyperledger/production
+    ports:
+      - 14051:14051
+      - 14053:14053
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:latest
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.manufacturer.carmanufacturing-network.com:7051
+      - CORE_PEER_LOCALMSPID=manufacturerMSP
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/peers/peer0.manufacturer.carmanufacturing-network.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/peers/peer0.manufacturer.carmanufacturing-network.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/peers/peer0.manufacturer.carmanufacturing-network.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/users/Admin@manufacturer.carmanufacturing-network.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/peer/chaincode/
+      - ./../chaincode-advanced/:/opt/gopath/src/github.com/hyperledger/fabric/peer/chaincode-advanced/
+      - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+      - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+      - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - ca.manufacturer.carmanufacturing-network.com
+      - ca.dealer.carmanufacturing-network.com
+      - ca.consumer.carmanufacturing-network.com
+      - ca.transporter.carmanufacturing-network.com
+      - orderer.carmanufacturing-network.com
+      - peer0.manufacturer.carmanufacturing-network.com
+      - peer1.manufacturer.carmanufacturing-network.com
+      - peer0.dealer.carmanufacturing-network.com
+      - peer1.dealer.carmanufacturing-network.com
+      - peer0.consumer.carmanufacturing-network.com
+      - peer1.consumer.carmanufacturing-network.com
+      - peer0.transporter.carmanufacturing-network.com
+      - peer1.transporter.carmanufacturing-network.com
+    networks:
+      - carmanufacturing-network
+    
+  chaincode:
+    container_name: chaincode
+    image: hyperledger/fabric-ccenv:latest
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=chaincode
+      - CORE_PEER_ADDRESS=peer0.manufacturer.carmanufacturing-network.com:7051
+      - CORE_PEER_LOCALMSPID=manufacturerMSP
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/users/Admin@manufacturer.carmanufacturing-network.com/msp
+      - CORE_TLS_CLIENT_KEY_PATH=/opt/gopath/src/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/users/Admin@manufacturer.carmanufacturing-network.com/tls/client.key
+      - CORE_TLS_CLIENT_CERT_PATH=/opt/gopath/src/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/users/Admin@manufacturer.carmanufacturing-network.com/tls/client.crt
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/crypto/peerOrganizations/manufacturer.carmanufacturing-network.com/users/Admin@manufacturer.carmanufacturing-network.com/tls/ca.crt
+    working_dir: /opt/gopath/src/chaincode
+    command: /bin/bash -c 'sleep 6000000'
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./../chaincode:/opt/gopath/src/chaincode
+      - ./../chaincode-advanced:/opt/gopath/src/chaincode-advanced
+      - ./crypto-config:/opt/gopath/src/crypto
+    networks:
+      - carmanufacturing-network
