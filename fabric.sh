@@ -1,8 +1,8 @@
 cryptogen generate --config=./crypto-config.yaml
 
-configtxgen -profile OrdererGenesis -channelID chainyard-sys-channel -outputBlock ./channel-artifacts/genesis.block
+configtxgen -profile OrdererGenesis -channelID car-man-channel -outputBlock ./channel-artifacts/genesis.block
 
-configtxgen -profile carmanufacturingChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID chainyard-sys-channel
+configtxgen -profile carmanufacturingChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID car-man-channel
 
 configtxgen -profile carmanufacturingChannel -outputAnchorPeersUpdate ./channel-artifacts/manufacturerMSPanchors.tx -channelID car-man-channel -asOrg manufacturerMSP
 
